@@ -1,9 +1,11 @@
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
-                                            NavigationToolbar2Tk) 
+                                            NavigationToolbar2Tk)
+
+import tkinter as tk
 
 class CustomToolbar(NavigationToolbar2Tk):
     """custom toolbar based on NavigationToolbar2Tk"""
-    
+
     def save_highdef(self):
         """save figure image at a higher dpi for publication etc"""
         savefile = tk.filedialog.asksaveasfilename(defaultextension = ".png",
@@ -20,7 +22,7 @@ class CustomToolbar(NavigationToolbar2Tk):
             self.canvas.figure.set_dpi(int(self.inputdpi))
             self.canvas.figure.savefig(savefile)
             self.canvas.figure.set_dpi(olddpi)
-            
+
     def _update_buttons_checked(self, mode = None):
         # sync button checkstates to match active mode
         for text in ['Zoom', 'Pan']:
@@ -44,7 +46,7 @@ class CustomToolbar(NavigationToolbar2Tk):
     def zoom(self, *args):
         super().zoom(*args)
         self._update_buttons_checked(mode = "Zoom")
-        
+
     def __init__(self, canvas_, parent_):
         """Initialise toolbar with custom button added to toolitems"""
         self.toolitems = (
