@@ -8,7 +8,7 @@ from assoc_interface_application import Application
 print("Starting App...")
 
 root = tk.Tk()
-root.title("GWAS Plots")
+root.title("GWAS Toolkit v3.2")
 width  = root.winfo_screenwidth()
 height = root.winfo_screenheight()
 try:

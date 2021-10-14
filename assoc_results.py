@@ -12,6 +12,8 @@ class Assoc():
         self.chrom_snplogp = {}
         self.chrom_snpbp = {}
         self.relgenpos = {}
+        self.relgenpos_dic = {}
+        self.pos_dic = {}
         self.graphtitle = ""
         self.n_annotations = 0
         self.assoc_ticks = []

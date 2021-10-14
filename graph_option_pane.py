@@ -124,6 +124,10 @@ class GraphOptionPane(ttk.Frame):
         
         self.app.assocnotebook.tab("current", text = f"Chr {chrom} Plot")
         
+        self.master.chrom = chrom
+        self.master.highlight_point = []
+        self.master.canvas.figure.canvas.mpl_connect('pick_event', self.master.onpick)
+
         self.implement_choices()
         self.master.canvas.draw()
         
@@ -133,6 +137,7 @@ class GraphOptionPane(ttk.Frame):
         self.set_margin_xlim_method(self.chosen_margin_float.get())
         
         self.plot_bonferonni_line()
+        self.plot_additional_line()
         self.single_chr_colour()
         
         self.set_x_fontsize()
@@ -141,6 +146,7 @@ class GraphOptionPane(ttk.Frame):
         self.set_xlabel_fontsize()
         self.set_title_fontsize()
         self.set_graph_font()
+        self.update_y_axis_option()
             
     def choice_of_other_plots(self):
         
@@ -227,6 +233,7 @@ class GraphOptionPane(ttk.Frame):
                                 text = f"Chr {chrom} Plot")
                                 
         self.app.assocnotebook.select(self.single_chr_page)
+        self.single_chr_page.graph_option_pane.update_y_axis_option()
         
     def text_options(self, bbox):
         x = bbox[0]
@@ -324,7 +331,7 @@ class GraphOptionPane(ttk.Frame):
         self.chosen_ysize.set(y)
         self.chosen_ylabelsize.set(yl)
         self.chosen_xlabelsize.set(xl)
-        
+
     def font_options(self, bbox):
         
         fontx = bbox[0]
@@ -626,19 +633,89 @@ class GraphOptionPane(ttk.Frame):
         self.line_style_box.state(["readonly", "disabled"])
         self.line_style_box.bind("<<ComboboxSelected>>",
                                     self.set_line_style)
+
+        # add an additional line to the graph
+        self.adline = ""
+        self.ad_line_lable = ttk.Label(self.plot_options_frame,
+                                        text = "Plot Additional Line:",
+                                        style = "Optlabel.TLabel")
+        self.ad_line_lable.grid(column = 0, row = 15, sticky = tk.W, padx = 5)
+        
+        self.ad_line_var = tk.StringVar()
+        self.ad_line_var.set(bonf_options[0])
+        self.ad_line_box = ttk.Combobox(self.plot_options_frame,
+                                    textvariable = self.ad_line_var,
+                                    values = bonf_options)
+        self.ad_line_box.grid(column = 0, row = 16, padx = 5)
+        self.ad_line_box.state(["readonly"])
+        self.ad_line_box.bind("<<ComboboxSelected>>", self.plot_additional_line)
+        
+        self.ad_line_pos_options = ["1","2","3","4","5","6","7","8"]
+        self.ad_line_pos_var = tk.StringVar()
+        self.ad_line_pos_var.set(self.ad_line_pos_options[4])
+        self.ad_line_pos_label = ttk.Label(self.plot_options_frame,
+                                            text = "Line Y Axis Position",
+                                            style = "OptLabel.TLabel")
+        self.ad_line_pos_label.state(["disabled"])
+        self.ad_line_pos_label.grid(column = 0, row = 17, sticky = tk.W, padx = 5)
+
+        self.ad_line_pos_box = ttk.Combobox(self.plot_options_frame,
+                                    textvariable = self.ad_line_pos_var,
+                                    values = self.ad_line_pos_options)
+        self.ad_line_pos_box.grid(column = 1, row = 17, padx = 5)
+        self.ad_line_pos_box.state(["readonly", "disabled"])
+        self.ad_line_pos_box.bind("<<ComboboxSelected>>",
+                                    self.plot_additional_line)
+
+        self.ad_line_colour = tk.StringVar()
+        self.ad_line_colour.set(line_colour_names[0])
+        
+        self.ad_line_style = tk.StringVar()
+        self.ad_line_style.set(line_style_names[3])
+
+        self.adlinecolourlabel = ttk.Label(self.plot_options_frame,
+                                        text = "Line Colour:",
+                                        style = "Optlabel.TLabel")
+        self.adlinecolourlabel.state(["disabled"])
+        self.adlinecolourlabel.grid(column = 0, row = 18, sticky = tk.W, padx = 5)
+
+        self.ad_line_colours_box = ttk.Combobox(self.plot_options_frame,
+                                    textvariable = self.ad_line_colour,
+                                    values = line_colour_names)
+        self.ad_line_colours_box.grid(column = 0, row = 19, padx = 5)
+        self.ad_line_colours_box.state(["readonly", "disabled"])
+        self.ad_line_colours_box.bind("<<ComboboxSelected>>",
+                                    self.set_additional_line_colour)
                                     
+        self.adlinestylelabel = ttk.Label(self.plot_options_frame,
+                                        text = "Line Style:",
+                                        style = "Optlabel.TLabel")
+        self.adlinestylelabel.state(["disabled"])
+        self.adlinestylelabel.grid(column = 1, row = 18, sticky = tk.W, padx = 5)
+
+        self.ad_line_style_box = ttk.Combobox(self.plot_options_frame,
+                                    textvariable = self.ad_line_style,
+                                    values = line_style_names)
+        self.ad_line_style_box.grid(column = 1, row = 19, padx = 5)
+        self.ad_line_style_box.state(["readonly", "disabled"])
+        self.ad_line_style_box.bind("<<ComboboxSelected>>",
+                                   self.set_additional_line_style)
+                                    
+        
+        #Set graph X margin
+
         self.chosen_margin = tk.StringVar()
         self.chosen_margin.set("1")
         self.margin_label = ttk.Label(self.plot_options_frame,
                                     text = "Graph X margin:"
                                             " (the 'padding' either side)",
                                     style = "Optlabel.TLabel")
-        self.margin_label.grid(column = 0, row = 19, sticky = tk.W, padx = 5,
+        self.margin_label.grid(column = 0, row = 20, sticky = tk.W, padx = 5,
                                 columnspan = 2)
         self.margin_box = ttk.Entry(self.plot_options_frame,
                                     textvariable = self.chosen_margin,
                                     width = 4)
-        self.margin_box.grid(column = 0, row = 20, sticky = tk.W, padx = 5)
+        self.margin_box.grid(column = 0, row = 21, sticky = tk.W, padx = 5)
         self.margin_box.state(["readonly"])
         
         self.margins_set = False
@@ -650,13 +727,45 @@ class GraphOptionPane(ttk.Frame):
                                     command = self.set_margin_xlim_method,
                                     variable = self.chosen_margin_float,
                                     style = "Optscrol.Horizontal.TScale")
-        self.margin_scale.grid(column = 0, row = 20, columnspan = 2, padx = 5)
+        self.margin_scale.grid(column = 0, row = 21, columnspan = 2, padx = 5)
         
+        # Set Y axis max
+
+        self.y_max_options = [""]
+        self.y_max_label = ttk.Label(self.plot_options_frame,
+                                        text = "Adjust Y Max:",
+                                        style = "Optlabel.TLabel")
+        self.y_max_label.grid(column = 0, row = 22, sticky = tk.W, padx = 5)
+        self.y_max_var = tk.StringVar()
+        self.y_max_var.set(self.y_max_options[0])
+        self.y_max_box = ttk.Combobox(self.plot_options_frame,
+                                    textvariable = self.y_max_var,
+                                    values = self.y_max_options)
+        self.y_max_box.grid(column = 0, row = 23, padx = 5)
+        self.y_max_box.state(["readonly"])
+        self.y_max_box.bind("<<ComboboxSelected>>", self.adjust_y_max)
+
         self.canvas.update_idletasks()
         plot_bbox = self.canvas.bbox(plot_pane)
         
         self.save_options(plot_bbox)
         
+    def update_y_axis_option(self):
+
+        ybottom, ytop = self.master.graph.get_ylim()
+        ylist = list(range(int(ybottom) + 1, int(ytop) + 1))
+        self.ad_line_pos_options = ylist
+        self.ad_line_pos_box.configure(values = self.ad_line_pos_options)
+        self.y_max_options = list(range(int(ytop), 21))
+        self.y_max_box.configure(values = self.y_max_options)
+        self.y_max_var.set(self.y_max_options[0])
+
+    def adjust_y_max(self, event = None):
+
+        new_max = int(self.y_max_var.get())
+        self.master.graph.set_ylim(top = new_max)
+        self.fig_canvas.draw()
+
     def save_options(self, bbox):
         
         fontx = bbox[0]
@@ -843,7 +952,42 @@ class GraphOptionPane(ttk.Frame):
             self.line_style_box.state(["readonly", "disabled"])
             
         self.fig_canvas.draw()
+
+    def plot_additional_line(self, event = None):
+        line_value = int(self.ad_line_pos_var.get())
+        if self.margins_set == False:
+            self.set_min_max_x()
         
+        if self.ad_line_var.get() == "On":
+            if self.adline:
+                self.adline.pop(0).remove()
+                del self.adline
+            xleft, xright = self.master.graph.get_xlim()
+            line_colour = self.ad_line_colour.get()
+            line_style = self.ad_line_style.get()
+            self.adline = self.master.graph.plot([0, self.xright_min],
+                                                    [line_value, line_value],
+                                                    linestyle = line_style,
+                                                    color = line_colour)
+            self.master.graph.set_xlim(xleft, xright)
+            self.ad_line_pos_label.state(["!disabled"])
+            self.ad_line_pos_box.state(["readonly", "!disabled"])
+            self.adlinecolourlabel.state(["!disabled"])
+            self.ad_line_colours_box.state(["readonly", "!disabled"])
+            self.adlinestylelabel.state(["!disabled"])
+            self.ad_line_style_box.state(["readonly", "!disabled"])
+        elif self.ad_line_var.get() == "Off" and self.adline:
+            self.adline.pop(0).remove()
+            del self.adline
+            self.ad_line_pos_label.state(["disabled"])
+            self.ad_line_pos_box.state(["readonly", "disabled"])
+            self.adlinecolourlabel.state(["disabled"])
+            self.ad_line_colours_box.state(["readonly", "disabled"])
+            self.adlinestylelabel.state(["disabled"])
+            self.ad_line_style_box.state(["readonly", "disabled"])
+            
+        self.fig_canvas.draw()
+
     def set_line_colour(self, event):
         line_colour = self.line_colour.get()
         for line in self.bonfline:
@@ -853,6 +997,18 @@ class GraphOptionPane(ttk.Frame):
     def set_line_style(self, event):
         line_style = self.line_style.get()
         for line in self.bonfline:
+            line.set_linestyle(line_style)
+        self.fig_canvas.draw()
+
+    def set_additional_line_colour(self, event):
+        line_colour = self.ad_line_colour.get()
+        for line in self.adline:
+            line.set_color(line_colour)
+        self.fig_canvas.draw()
+        
+    def set_additional_line_style(self, event):
+        line_style = self.ad_line_style.get()
+        for line in self.adline:
             line.set_linestyle(line_style)
         self.fig_canvas.draw()
         

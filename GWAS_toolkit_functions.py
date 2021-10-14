@@ -309,7 +309,7 @@ def plot_single_chr(resultsobj, chrom):
     fig = Figure(figsize = [9, 5])
     graph = fig.add_subplot()
     
-    series = graph.scatter(chrom_snpbp[chrom], chrom_snplogp[chrom], 5)
+    series = graph.scatter(chrom_snpbp[chrom], chrom_snplogp[chrom], 5, picker = True)
     
     plottitle = f"Chromosome {chrom} Association Plot"
 
@@ -345,12 +345,11 @@ def plot_assoc_chr(resultsobj, chrom):
     
     
     print(f"Plotting: chr{chrom} ({len(chrom_snpnum[chrom])} SNPs)")
-    #series = graph.scatter(chrom_snpnum[chrom], chrom_snplogp[chrom], 3,
-    #            label = chrom)
+    
     series = graph.scatter(relgenpos[chrom], chrom_snplogp[chrom], 3,
-                label = chrom)
+                label = chrom, picker = True)
     series_list.append(series)
-    #chrom_start = chrom_snpnum[chrom][0]
+    
     chrom_start = relgenpos[chrom][0]
     chrom_end = chrom_snpnum[chrom][-1]
     chrom_mid = (chrom_start + chrom_end) / 2
@@ -375,6 +374,8 @@ def plot_assoc_chr(resultsobj, chrom):
     resultsobj.graph = graph
     resultsobj.series_list = series_list
     
+
+
     return resultsobj
         
 def plot_assoc_graph(resultsobj, graph_type = "genotyped"):
@@ -506,14 +507,19 @@ def prep_assoc_data(resultsobj):
 
     n = 1
     for snp in resultsobj.assoclist:
+        snpid = snp[resultsobj.assocheader["snp"]]
         p = snp[resultsobj.assocheader["p"]]
         logp = (math.log10(p)) * -1
-        resultsobj.chrom_snplogp[snp[resultsobj.assocheader["chrom"]]].append(logp)
+        chrom = snp[resultsobj.assocheader["chrom"]]
+        resultsobj.chrom_snplogp[chrom].append(logp)
         snp.append(logp)
-        resultsobj.chrom_snpnum[snp[resultsobj.assocheader["chrom"]]].append(n)
+        resultsobj.chrom_snpnum[chrom].append(n)
         snp.append(n)
         bp = snp[resultsobj.assocheader["bp"]]
-        resultsobj.chrom_snpbp[snp[resultsobj.assocheader["chrom"]]].append(bp)
+        resultsobj.chrom_snpbp[chrom].append(bp)
+
+        resultsobj.pos_dic[f"{chrom}:{bp}"] = [snpid, bp, chrom]
+
         n += 1
 
     resultsobj.assocheader["logp"] = 4
@@ -521,22 +527,31 @@ def prep_assoc_data(resultsobj):
     
     chrom_max = {}
     
-    for chrom in resultsobj.chromset:
-        if chrom == 1:
-            chrom_max[chrom] = resultsobj.chrom_snpbp[chrom][-1]
-        else:
-            prev_chr = chrom - 1
-            prev_max = chrom_max[prev_chr]
-            chrom_max[chrom] = resultsobj.chrom_snpbp[chrom][-1] + prev_max
+    if len(resultsobj.chromset) == 1:
+        chrom_max[chrom] = resultsobj.chrom_snpbp[chrom][-1]
+    else:
+        for chrom in resultsobj.chromset:
+            if chrom == 1:
+                chrom_max[chrom] = resultsobj.chrom_snpbp[chrom][-1]
+            else:
+                prev_chr = chrom - 1
+                prev_max = chrom_max[prev_chr]
+                chrom_max[chrom] = resultsobj.chrom_snpbp[chrom][-1] + prev_max
         
     for snp in resultsobj.assoclist:
         chrom = snp[resultsobj.assocheader["chrom"]]
-        if chrom == 1:
+
+        if len(resultsobj.chromset) == 1:
             shiftpos = snp[resultsobj.assocheader["bp"]]
         else:
-            prev_chr = chrom - 1
-            shiftpos = snp[resultsobj.assocheader["bp"]] + chrom_max[prev_chr]
+
+            if chrom == 1:
+                shiftpos = snp[resultsobj.assocheader["bp"]]
+            else:
+                prev_chr = chrom - 1
+                shiftpos = snp[resultsobj.assocheader["bp"]] + chrom_max[prev_chr]
         resultsobj.relgenpos[chrom].append(shiftpos)
+        resultsobj.relgenpos_dic[shiftpos] = [snp[resultsobj.assocheader["snp"]], snp[resultsobj.assocheader["bp"]], snp[resultsobj.assocheader["chrom"]]]
         snp.append(shiftpos)
         
     resultsobj.assocheader["shiftpos"] = 6

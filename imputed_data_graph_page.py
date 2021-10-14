@@ -140,7 +140,8 @@ class ImputedDataGraphPage(ttk.Frame):
                                     self.results.gen_chr_relgenpos[chrom],
                                     self.results.gen_chr_snplogp[chrom],
                                     3,
-                                    label = chrom)
+                                    label = chrom,
+                                    picker = True)
             self.results.gen_series_list.append(gen_series)
         
             print(f"Plotting: chr{chrom} imputed SNPs")
@@ -152,7 +153,8 @@ class ImputedDataGraphPage(ttk.Frame):
                                     marker = "^",
                                     facecolors = "none",
                                     edgecolors = f"C{(chrom - 1) % 10}",
-                                    linewidths = 0.5)
+                                    linewidths = 0.5,
+                                    picker = True)
             self.results.imp_series_list.append(imp_series)
             
             self.master.progress.step()
@@ -170,6 +172,7 @@ class ImputedDataGraphPage(ttk.Frame):
                                             top = 0.92)
         self.imp_graph.canvas.draw_idle()
         self.imp_graph.graph_option_pane.update_text_options()
+        self.imp_graph.graph_option_pane.update_y_axis_option()
 
 
     def pick_file(self):

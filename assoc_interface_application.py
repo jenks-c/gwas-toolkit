@@ -111,12 +111,20 @@ class Application(ttk.Frame):
         
         self.assocnotebook.add(self.input_frame, text = "Input")
         
-        self.title_img = tk.PhotoImage(file = "title.gif")
+        #self.title_img = tk.PhotoImage(file = "title.gif")
         
-        self.title_label = ttk.Label(self.input_frame, image = self.title_img,
-                                    style = "wlabel.TLabel")
-        self.title_label.grid(column = 0, row = 0, columnspan = 2, pady = 20)
-        
+        #self.title_label = ttk.Label(self.input_frame, image = self.title_img,
+        #                            style = "wlabel.TLabel")
+        #self.title_label.grid(column = 0, row = 0, columnspan = 2, pady = 20)
+
+        self.logo_canvas = tk.Canvas(self.input_frame, bg = "white", height = 150, width = 350,
+                                        borderwidth = 0, highlightthickness = 0)
+        self.logo_canvas.grid(column = 0, row = 0, columnspan = 2)
+        self.logo_outer = self.logo_canvas.create_oval(30,30,320,130, fill = "light blue", outline = "white")
+        self.logo_text = self.logo_canvas.create_text(175, 75, anchor = tk.CENTER)
+        self.logo_canvas.itemconfig(self.logo_text, text = "GWAS Toolkit v3", font = ("courier", 25, "bold", "underline"))
+        self.logo_canvas.update_idletasks()
+
         self.enter_text = ttk.Entry(self.input_frame, width = 75)
         self.enter_text.insert(0, "")
         self.enter_text.grid(column = 0, row = 2, padx = 5, sticky = tk.W)
@@ -367,6 +375,7 @@ class Application(ttk.Frame):
         
         self.progress["maximum"] = len(self.assoc_results.chromset) + 0.001
         
+
         x = threading.Thread(target=self.threaded_plot, daemon = True)
         x.start()
         
@@ -406,5 +415,6 @@ class Application(ttk.Frame):
                                                 top = 0.92)
         self.assoc_page.canvas.draw_idle()
         self.assoc_page.graph_option_pane.update_text_options()
+        self.assoc_page.graph_option_pane.update_y_axis_option()
         self.table_page.make_results_table(50)
         self.table_page.make_option_and_info_panel()
