@@ -366,7 +366,6 @@ class Application(ttk.Frame):
             self.item_indexs = {}
             self.item_indexs = get_assoc_columns(self.header_dict,
                                                 self.filetype, plot = "assoc")
-            print(self.item_indexs)
         
         self.assoc_results.data = self.data
         self.assoc_results.item_indexs = self.item_indexs

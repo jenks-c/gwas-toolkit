@@ -43,13 +43,10 @@ class GraphOptionPane(ttk.Frame):
         
         if self.plot_type == "all_chr" or self.plot_type == "imputed":
             self.choice_of_other_plots()
-            print(self.plot_type, "choice")
         elif (self.plot_type == "single_chr" or
                 self.plot_type == "single_chr_imputed"):
             self.single_chr_choice()
-            print(self.plot_type, "chr choice")
         elif self.plot_type == "qq":
-            print(self.plot_type, "none")
             bbox = [10,0,0,0]
             self.text_options(bbox)
             self.scrollY.grid_forget()

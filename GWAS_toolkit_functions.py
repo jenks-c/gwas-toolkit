@@ -81,35 +81,6 @@ def get_assoc_columns(header_dictionary, filetype, plot = "assoc"):
             item_indexs["bp"] = header_dictionary["bp"]
     return item_indexs
     
-def user_input_assoc_columns(item_dictionary, header_dictionary):
-    """
-    Takes a dictionary of the items needed with their description,
-    and a dictionary of a files headers and their indexes,
-    and gets user inputed locations for the items needed in an analysis
-    """
-    item_indexs = {}
-    print("\nPlease input the header of the column that contains the "
-        "following:")
-    for key, detail in item_dictionary.items():
-        head = ""
-        while True:
-            head = input(f"\n{detail}\n\t> ")
-            if key == "Qp" and head == "":
-                break
-            else:
-                if head in header_dictionary:
-                    print(f"\n{head}, column number "
-                        f"{(header_dictionary[head]) + 1}, "
-                        "is that correct? Y/N")
-                    if input("\t> ").lower() == "y":
-                        item_indexs[key] = head
-                        break
-                else:
-                    print(f"\nCould not find '{item_indexs[key]}' in the file, "
-                        "please try again.")
-    for item in item_indexs:
-        item_indexs[item] = header_dictionary[item_indexs[item]]
-    return item_indexs
 
 def find_file_type(header_dict):
     """
@@ -138,31 +109,6 @@ def find_file_type(header_dict):
 
     return message, filetype
 
-def keep_common_snps(dataset1, dataset2):
-    """Removes the SNPs not in both of two GWAS datasets"""
-    n = 0
-    snp_remove = []
-    for snp in dataset1:
-        if snp in dataset2:
-            n += 1
-        else:
-            snp_remove.append(snp)
-    for snp in dataset2:
-        if snp not in dataset1:
-            snp_remove.append(snp)
-
-    for snp in snp_remove:
-        if snp in dataset1:
-            del dataset1[snp]
-        elif snp in dataset2:
-            del dataset2[snp]
-    
-    if len(dataset1) == n and len(dataset2) == n:
-        print(f"\nThere are {n} SNPs in common between the two datasets.")
-        print(f"\nOnly the common SNPs kept in both datasets.")
-    else:
-        print("\nSomething went wrong with finding shared SNPs. Exiting.")
-        sys.exit()
         
 def header_index(header_list):
     """
@@ -526,15 +472,18 @@ def prep_assoc_data(resultsobj):
     resultsobj.assocheader["n"] = 5
     
     chrom_max = {}
+    chroms = list(resultsobj.chromset)
+    chroms.sort()
     
     if len(resultsobj.chromset) == 1:
         chrom_max[chrom] = resultsobj.chrom_snpbp[chrom][-1]
     else:
         for chrom in resultsobj.chromset:
-            if chrom == 1:
+            if chrom == chroms[0]:
                 chrom_max[chrom] = resultsobj.chrom_snpbp[chrom][-1]
             else:
-                prev_chr = chrom - 1
+                chrom_index = chroms.index(chrom)
+                prev_chr = chroms[chrom_index - 1]
                 prev_max = chrom_max[prev_chr]
                 chrom_max[chrom] = resultsobj.chrom_snpbp[chrom][-1] + prev_max
         
@@ -544,11 +493,11 @@ def prep_assoc_data(resultsobj):
         if len(resultsobj.chromset) == 1:
             shiftpos = snp[resultsobj.assocheader["bp"]]
         else:
-
-            if chrom == 1:
+            if chrom == chroms[0]:
                 shiftpos = snp[resultsobj.assocheader["bp"]]
             else:
-                prev_chr = chrom - 1
+                chrom_index = chroms.index(chrom)
+                prev_chr = chroms[chrom_index - 1]
                 shiftpos = snp[resultsobj.assocheader["bp"]] + chrom_max[prev_chr]
         resultsobj.relgenpos[chrom].append(shiftpos)
         resultsobj.relgenpos_dic[shiftpos] = [snp[resultsobj.assocheader["snp"]], snp[resultsobj.assocheader["bp"]], snp[resultsobj.assocheader["chrom"]]]
